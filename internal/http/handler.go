@@ -8,6 +8,11 @@ import (
 	"github.com/spike510/url-shortener/internal/generator"
 )
 
+type Storage interface {
+	Save(code, url string) error
+	Get(code string) (string, error)
+}
+
 type shortenRequest struct {
 	URL string `json:"url"`
 }
@@ -20,13 +25,14 @@ type shortenResponse struct {
 type Handler struct {
 	baseUrl   string
 	generator *generator.CodeGenerator
+	storage   Storage
 }
 
-func NewHandler(baseUrl string, generator *generator.CodeGenerator) *Handler {
+func NewHandler(baseUrl string, generator *generator.CodeGenerator, storage Storage) *Handler {
 	if strings.HasSuffix(baseUrl, "/") {
 		baseUrl = strings.TrimRight(baseUrl, "/")
 	}
-	return &Handler{baseUrl: baseUrl}
+	return &Handler{baseUrl: baseUrl, generator: generator, storage: storage}
 }
 
 func (h *Handler) Shorten(c *gin.Context) {
@@ -49,6 +55,12 @@ func (h *Handler) Shorten(c *gin.Context) {
 		return
 	}
 
+	err = h.storage.Save(code, req.URL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save url in storage"})
+		return
+	}
+
 	res := shortenResponse{Code: code, ShortURL: h.baseUrl + "/" + code}
 
 	c.JSON(http.StatusCreated, res)
@@ -61,12 +73,15 @@ func (h *Handler) Redirect(c *gin.Context) {
 		return
 	}
 
-	// TODO: retrieving url for code from storage
-	orig := "http://onet.pl"
+	url, err := h.storage.Get(code)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "code not found"})
+		return
+	}
 
 	// Basic safety: ensure URL has scheme
-	if !strings.HasPrefix(orig, "http://") && !strings.HasPrefix(orig, "https://") {
-		orig = "http://" + orig
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "http://" + url
 	}
-	c.Redirect(http.StatusFound, orig)
+	c.Redirect(http.StatusFound, url)
 }

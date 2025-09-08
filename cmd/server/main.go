@@ -9,6 +9,7 @@ import (
 
 	"github.com/spike510/url-shortener/internal/generator"
 	internalhttp "github.com/spike510/url-shortener/internal/http"
+	"github.com/spike510/url-shortener/internal/storage"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 		baseURL = fmt.Sprintf("http://localhost:%s", port)
 	}
 
-	h := internalhttp.NewHandler(baseURL, generator.NewCodeGenerator())
+	h := internalhttp.NewHandler(baseURL, generator.NewCodeGenerator(), storage.NewInMemoryStorage())
 
 	r := internalhttp.NewRouter()
 	r.POST("/api/shorten", h.Shorten)
