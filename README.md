@@ -8,6 +8,7 @@ A simple and efficient URL shortening service that converts long, messy links in
 - Redirect short URLs to their original destinations
 - RESTful API built with [Gin](https://github.com/gin-gonic/gin)
 - Secure random code generation
+- In-memory storage for URLs
 - Easy to run locally
 
 ## Getting Started
@@ -74,12 +75,21 @@ curl -X POST http://localhost:8080/api/shorten \
   -d '{"url":"https://example.com"}'
 ```
 
+### Testing
+
+Run unit tests with:
+
+```sh
+go test ./...
+```
+
 ### Project Structure
 
 ```
 cmd/server/         # Main server entrypoint
 internal/http/      # HTTP handlers and routing
 internal/generator/ # Short code generator
+internal/storage/   # In-memory URL storage
 ```
 
 ### License

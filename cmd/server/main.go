@@ -23,14 +23,17 @@ func main() {
 		baseURL = fmt.Sprintf("http://localhost:%s", port)
 	}
 
+	// Handlers
 	h := internalhttp.NewHandler(baseURL, generator.NewCodeGenerator(), storage.NewInMemoryStorage())
 
+	// Router
 	r := internalhttp.NewRouter()
 	r.POST("/api/shorten", h.Shorten)
 	r.GET("/:code", h.Redirect)
 
 	log.Printf("Server running on :%s", port)
 
+	// Graceful shutdown
 	go func() {
 		if err := r.Run(fmt.Sprintf(":%s", port)); err != nil {
 			log.Fatalf("Server failed to start: %v", err)

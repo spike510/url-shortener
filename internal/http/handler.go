@@ -36,7 +36,6 @@ func NewHandler(baseUrl string, generator *generator.CodeGenerator, storage Stor
 }
 
 func (h *Handler) Shorten(c *gin.Context) {
-
 	var req shortenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json body"})
@@ -48,7 +47,6 @@ func (h *Handler) Shorten(c *gin.Context) {
 		return
 	}
 
-	// TODO: verify if code is unique in storage
 	code, err := h.generator.GenerateCode(6)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate code"})
